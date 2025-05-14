@@ -111,14 +111,23 @@ pip install pynput
 
 ## 🛣️ Roadmap (prochaines étapes)
 
-- [ ] 🎮 Détection de la souris et clics
-- [ ] 💡 Intégration avec Razer Chroma ou Corsair iCUE
+- [ ] 💡 Intégration avec Razer Chroma
 - [ ] 📈 Interface graphique de visualisation en direct
 - [ ] 🎥 Enregistrement des actions pour replay ou training
+- [ ] 🔁 Ajout d'une **vérification toutes les minutes** pour détecter une partie en cours (évite les erreurs en boucle)
+- [ ] 🧠 Détection des **événements de jeu** :
+  - [ ] Premier sang
+  - [ ] Tuer un dragon
+  - [ ] Tuer le Baron Nashor
+  - [ ] Apparition des sbires
+  - [ ] Détection des kills / assists
+- [ ] 🧪 Mode debug avec logs détaillés pour le développement
+- [ ] 💤 Mode veille automatique si aucun jeu n'est détecté
 
 ---
 
 ## 🧑‍💻 Auteur
 
-Projet développé par **[Ton Nom/Pseudo]** dans un but personnel et technique.  
+Projet développé par **willem cornil** dans un but personnel et technique.  
 Si vous voulez contribuer ou discuter, n'hésitez pas à proposer une **Pull Request** ou à me contacter sur GitHub !
+Le project et en public alors amusé vous
