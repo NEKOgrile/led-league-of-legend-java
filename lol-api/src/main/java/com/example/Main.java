@@ -62,8 +62,16 @@ public class Main {
                         String sortKey = (matchedKey != null) ? matchedKey.key.toUpperCase() : "?";
                         int manaUsed = previousMana - currentMana;
 
+
+
+
                         System.out.println("sort " + sortKey + " lancé " + manaUsed + " mana");
 
+
+
+
+
+                        
                         // Ne vide plus la liste ici
                     }
 
