@@ -134,4 +134,4 @@ pip install pynput
 
 Projet développé par **willem cornil** dans un but personnel et technique.  
 Si vous voulez contribuer ou discuter, n'hésitez pas à proposer une **Pull Request** ou à me contacter sur GitHub !
-Le project et en public alors amusé vous
+Le project et en public alors amusez vous
