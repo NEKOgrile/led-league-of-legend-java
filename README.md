@@ -14,7 +14,7 @@ L'objectif est de **lier les actions en jeu aux périphériques physiques** pour
 ### 📊 Ce que le programme récupère :
 
 - **Mana** : changement du mana à chaque action
-- **Touche pressée** : ex. `A`, `Z`, `E`, clic droit...
+- **Touche pressée** : ex. `A`, `Z`, `E`, `R`
 - **Sort détecté** : affichage dans la console avec la valeur de mana restante
 - **Effet lumineux prévu** (à venir) : système RGB en lien avec le périphérique
 
@@ -23,19 +23,19 @@ L'objectif est de **lier les actions en jeu aux périphériques physiques** pour
 ## 🧱 Structure du projet
 
 ```bash
-┌── SortDetector
-├── src/
-│   ├── key_listener.py                # Script Python de récupération des touches
-│   ├── key_pressed.txt                # Fichier temporaire contenant les touches pressées
-│   ├── main/
-│   │   ├── java/
-│   │   │   └── com/example/
-│   │   │       ├── GetManaPlayer.java     # Récupère le mana du joueur
-│   │   │       ├── HttpClientConfig.java  # Configuration HTTP
-│   │   │       ├── KeyPressReader.java    # Lit les touches enregistrées
-│   │   │       ├── Main.java              # Point d'entrée du programme
-│   │   │       └── SortDetector.java      # Détecte les sorts en fonction du mana et des touches
-│   └── resources/                    # Ressources futures (config, templates...)
+┌── lol-api
+│   ├──  src/
+│      ├── key_listener.py                # Script Python de récupération des touches
+│      ├── key_pressed.txt                # Fichier temporaire contenant les touches pressées
+│      ├── main/
+│      │   ├── java/
+│      │   │   └── com/example/
+│      │   │       ├── GetManaPlayer.java     # Récupère le mana du joueur
+│      │   │       ├── HttpClientConfig.java  # Configuration HTTP
+│      │   │       ├── KeyPressReader.java    # Lit les touches enregistrées
+│      │   │       ├── Main.java              # Point d'entrée du programme
+│      │   │       └── SortDetector.java      # Détecte les sorts en fonction du mana et des touches
+│      └── resources/                    # Ressources futures (config, templates...)
 ├── README.md
 └── .gitignore
 ```
@@ -53,7 +53,9 @@ L'objectif est de **lier les actions en jeu aux périphériques physiques** pour
 | **pip**                          | 23.x+                    | Installation de paquets Python       |
 
 > 💡 **Aucune dépendance externe** pour Java n’est requise actuellement.  
-> Pour Python, le script fonctionne sans bibliothèque supplémentaire.
+> Pour Python, le script fonctionne avec une bibliothèque supplémentaire : **pynput** 
+
+    
 
 ---
 
@@ -62,8 +64,8 @@ L'objectif est de **lier les actions en jeu aux périphériques physiques** pour
 ### 1️⃣ Cloner le projet
 
 ```bash
-git clone https://github.com/tonrepo/SortDetector.git
-cd SortDetector
+git clone https://github.com/NEKOgrile/led-league-of-legend-java.git
+cd led-league-of-legend-java
 ```
 
 ### 2️⃣ Ouvrir le projet avec Visual Studio Code
@@ -71,28 +73,23 @@ cd SortDetector
 > Visual Studio Code permet de gérer à la fois le code **Java** et **Python** avec les bonnes extensions.
 
 1. Ouvrir VSCode.
-2. Sélectionner le dossier `SortDetector`.
+2. Sélectionner le dossier `led-league-of-legend-java`.
 3. Installer les extensions recommandées si VSCode vous les propose (Java Extension Pack, Python...).
 
-### 3️⃣ Lancer le programme
+### 3️⃣ Installer les bibliotheque Python
+
+- Ouvrir le terminal.
+```bash
+pip install pynput
+```
+
+---
+
+### 4️⃣ Lancer le programme
 
 - Lancer directement la **classe `Main.java`** via Visual Studio Code.
 
 > 💡 Le `Main.java` est le point d’entrée. Il lit les touches via le fichier `key_pressed.txt` et détecte les changements de mana en boucle.
-
----
-
-## 🖱️ Partie Python (key_listener.py)
-
-Ce fichier permet de **capturer les touches** que vous pressez (clavier, souris, etc.). À terme, vous pourrez ajouter la **souris**, des **touches spéciales**, et des **triggers RGB** pour les périphériques compatibles (Razer, Corsair...).
-
-Lancer le script :
-
-```bash
-python src/key_listener.py
-```
-
-Il va créer ou modifier le fichier `key_pressed.txt` contenant la dernière touche pressée, lisible par le Java.
 
 ---
 
