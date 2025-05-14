@@ -82,10 +82,14 @@ cd led-league-of-legend-java
 ```bash
 pip install pynput
 ```
+### 4️⃣ Lancer la partie de league of legende
+
+- Lancer directement la game de lol , le programme fera le reste
 
 ---
 
-### 4️⃣ Lancer le programme
+
+### 5️⃣ Lancer le programme
 
 - Lancer directement la **classe `Main.java`** via Visual Studio Code.
 
