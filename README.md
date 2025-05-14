@@ -86,7 +86,7 @@ pip install pynput
 
 - Lancer directement la game de lol , le programme fera le reste
 
----
+=
 
 
 ### 5️⃣ Lancer le programme
