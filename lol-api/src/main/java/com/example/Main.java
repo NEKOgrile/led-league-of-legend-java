@@ -1,38 +1,81 @@
 package com.example;
 
 import java.net.http.HttpClient;
-import javax.net.ssl.*;
-import java.security.SecureRandom;
-import java.time.Duration;
+import java.util.*;
 
 public class Main {
+
+    static class TimedKey {
+        String key;
+        long timestamp;
+
+        TimedKey(String key) {
+            this.key = key;
+            this.timestamp = System.currentTimeMillis();
+        }
+    }
+
     public static void main(String[] args) throws Exception {
-        // Construit le SSLContext
-        SSLContext sslContext = SSLContext.getInstance("TLS");
-        sslContext.init(null, new TrustManager[]{ new X509TrustManager() {
-            public java.security.cert.X509Certificate[] getAcceptedIssuers() { return null; }
-            public void checkClientTrusted(java.security.cert.X509Certificate[] certs, String authType) {}
-            public void checkServerTrusted(java.security.cert.X509Certificate[] certs, String authType) {}
-        } }, new SecureRandom());
+        HttpClient client = HttpClientConfig.createHttpClient();
 
-        HttpClient client = HttpClient.newBuilder()
-                .sslContext(sslContext)
-                .connectTimeout(Duration.ofSeconds(1))
-                .build();
+        if (client == null) {
+            System.err.println("Erreur de création du HttpClient.");
+            return;
+        }
 
-        // Détecteur de touches
         KeyPressReader keyReader = new KeyPressReader();
         keyReader.startListening();
 
-        while (true) {
-            String key = keyReader.getLastKeyPressed();
-            if (key != null) {
-                System.out.println("Touche pressée détectée : " + key);
-                // Ici tu peux appeler SortDetector ou d'autres actions en fonction de la touche
-            }
-            Thread.sleep(100);  // rafraîchissement
-        }
+        List<TimedKey> allKeys = new ArrayList<>();
+        int previousMana = -1;
 
-        // keyReader.stopListening(); ← À utiliser si tu veux arrêter le script Python
+        while (true) {
+            // 1. Lire et stocker chaque touche avec le timestamp
+            String keyPressed = keyReader.getLastKeyPressed();
+            if (keyPressed != null) {
+                allKeys.add(new TimedKey(keyPressed));
+
+                // ✅ Ici on peut vider le fichier : la touche est stockée dans allKeys
+                keyReader.clearKeyFile();
+            }
+
+            // 2. Lire le mana
+            Optional<String> manaOpt = GetManaPlayer.getMana(client);
+            if (manaOpt.isPresent()) {
+                try {
+                    int currentMana = Integer.parseInt(manaOpt.get().split("\\.")[0]);
+
+                    if (previousMana != -1 && currentMana < previousMana) {
+                        long now = System.currentTimeMillis();
+                        long deltaTime = 500; // on cherche une touche pressée dans les 500 ms avant
+
+                        // Cherche la touche la plus proche juste avant la perte de mana
+                        TimedKey matchedKey = null;
+                        for (int i = allKeys.size() - 1; i >= 0; i--) {
+                            TimedKey tk = allKeys.get(i);
+                            if (now - tk.timestamp <= deltaTime) {
+                                matchedKey = tk;
+                                break;
+                            }
+                        }
+
+                        String sortKey = (matchedKey != null) ? matchedKey.key.toUpperCase() : "?";
+                        int manaUsed = previousMana - currentMana;
+
+                        System.out.println("sort " + sortKey + " lancé " + manaUsed + " mana");
+
+                        // Ne vide plus la liste ici
+                    }
+
+                    previousMana = currentMana;
+                } catch (NumberFormatException e) {
+                    System.err.println("Erreur de parsing du mana : " + e.getMessage());
+                }
+            } else {
+                System.err.println("Impossible de récupérer le mana.");
+            }
+
+            Thread.sleep(50); // ajustable
+        }
     }
 }

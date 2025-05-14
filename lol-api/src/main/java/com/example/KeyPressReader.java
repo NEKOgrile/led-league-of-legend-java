@@ -10,13 +10,8 @@ public class KeyPressReader {
     private final File keyFile;
 
     public KeyPressReader() {
-        // Chemin absolu du dossier où se trouvent le script Python et le fichier texte
         workingDir = new File("C:/Users/thebe/Desktop/code/java/lol-api/src");
-
-        // Script Python
         scriptPath = new File(workingDir, "key_listener.py");
-
-        // Fichier généré par le script
         keyFile = new File(workingDir, "key_pressed.txt");
     }
 
@@ -29,10 +24,10 @@ public class KeyPressReader {
 
             ProcessBuilder processBuilder = new ProcessBuilder("python", scriptPath.getAbsolutePath());
             processBuilder.directory(workingDir);
-            processBuilder.redirectErrorStream(true); // utile pour debug
+            processBuilder.redirectErrorStream(true);
             pythonProcess = processBuilder.start();
 
-            // (optionnel) lire les logs du script Python
+            // Log Python output
             new Thread(() -> {
                 try (BufferedReader reader = new BufferedReader(
                         new InputStreamReader(pythonProcess.getInputStream()))) {
@@ -57,14 +52,21 @@ public class KeyPressReader {
                 String key = reader.readLine();
                 reader.close();
 
-                // Vider le fichier pour ne pas relire la même touche
-                new PrintWriter(keyFile).close();
+                // ❌ NE SUPPRIME PLUS ICI
                 return key;
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
         return null;
+    }
+
+    public void clearKeyFile() {
+        try {
+            new PrintWriter(keyFile).close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void stopListening() {
