@@ -27,7 +27,7 @@ public class SortDetector {
                 System.err.println("Impossible de récupérer le mana.");
             }
 
-            Thread.sleep(20); // Pause de 20 ms
+            Thread.sleep(10); // Pause de 20 ms
         }
     }
 }
