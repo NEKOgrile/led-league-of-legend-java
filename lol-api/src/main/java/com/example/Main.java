@@ -43,12 +43,24 @@ public class Main {
             return;
         }
 
+        Optional<String> activeChamp = GetNameChampion.getChampionName(client);
+        activeChamp.ifPresentOrElse(
+            champ -> LOGGER.info("Champion actif détecté : " + champ),
+            ()     -> LOGGER.warning("Impossible de détecter le champion actif")
+        );
+
+
+
+
         KeyPressReader keyReader = new KeyPressReader();
         LOGGER.fine("Démarrage du listener de touches");
         keyReader.startListening();
 
         List<TimedKey> allKeys = new ArrayList<>();
         int previousMana = -1;
+
+
+
 
         while (true) {
             // 1. Lire et stocker chaque touche avec le timestamp
@@ -83,7 +95,13 @@ public class Main {
                         int manaUsed = previousMana - currentMana;
 
                         LOGGER.info("Sort détecté : key=" + sortKey + "  manaUsed=" + manaUsed);
-                        System.out.println("sort " + sortKey + " lancé " + manaUsed + " mana");
+                        if (activeChamp.isPresent()) {
+                            String champion = activeChamp.get();
+                            System.out.println(champion + " sort " + sortKey + " lancé " + manaUsed + " mana");
+                        } else {
+                            System.out.println("Champion inconnu sort " + sortKey + " lancé " + manaUsed + " mana");
+                        }
+
                     }
                     previousMana = currentMana;
                 } catch (NumberFormatException e) {
