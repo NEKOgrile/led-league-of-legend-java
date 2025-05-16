@@ -10,7 +10,7 @@ public class KeyPressReader {
     private final File keyFile;
 
     public KeyPressReader() {
-        workingDir = new File("C:/Users/thebe/Desktop/code/java/lol-api/src");
+        workingDir = new File("lol-api/src");
         scriptPath = new File(workingDir, "key_listener.py");
         keyFile = new File(workingDir, "key_pressed.txt");
     }
