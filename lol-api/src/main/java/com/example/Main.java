@@ -2,6 +2,7 @@ package com.example;
 
 import java.net.http.HttpClient;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.logging.*;
 
 public class Main {
@@ -18,8 +19,32 @@ public class Main {
         }
     }
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         // Configuration du logging
+        configureLogging();
+
+        LOGGER.info("Démarrage de l'application");
+
+        HttpClient client = HttpClientConfig.createHttpClient();
+        if (client == null) {
+            LOGGER.severe("Erreur de création du HttpClient.");
+            return;
+        }
+
+        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+
+        scheduler.scheduleAtFixedRate(() -> {
+            if (GameStatusChecker.isGameRunning(client)) {
+                LOGGER.info("Une partie est en cours !");
+                // Exécutez ici votre logique principale
+                runGameLogic(client);
+            } else {
+                LOGGER.info("Aucune partie en cours.");
+            }
+        }, 0, 60, TimeUnit.SECONDS);
+    }
+
+    private static void configureLogging() {
         LogManager.getLogManager().reset();
         ConsoleHandler consoleHandler = new ConsoleHandler();
         consoleHandler.setLevel(Level.FINE);
@@ -35,22 +60,14 @@ public class Main {
         }
 
         LOGGER.setLevel(Level.FINE);
-        LOGGER.info("Démarrage de l'application");
+    }
 
-        HttpClient client = HttpClientConfig.createHttpClient();
-        if (client == null) {
-            LOGGER.severe("Erreur de création du HttpClient.");
-            return;
-        }
-
+    private static void runGameLogic(HttpClient client) {
         Optional<String> activeChamp = GetNameChampion.getChampionName(client);
         activeChamp.ifPresentOrElse(
             champ -> LOGGER.info("Champion actif détecté : " + champ),
             ()     -> LOGGER.warning("Impossible de détecter le champion actif")
         );
-
-
-
 
         KeyPressReader keyReader = new KeyPressReader();
         LOGGER.fine("Démarrage du listener de touches");
@@ -58,9 +75,6 @@ public class Main {
 
         List<TimedKey> allKeys = new ArrayList<>();
         int previousMana = -1;
-
-
-
 
         while (true) {
             // 1. Lire et stocker chaque touche avec le timestamp
@@ -80,7 +94,7 @@ public class Main {
 
                     if (previousMana != -1 && currentMana < previousMana) {
                         long now = System.currentTimeMillis();
-                        long deltaTime = 500; // window for recent key presses
+                        long deltaTime = 500; // fenêtre pour les frappes récentes
 
                         // Recherche de la touche associée
                         TimedKey matchedKey = null;
@@ -101,7 +115,6 @@ public class Main {
                         } else {
                             System.out.println("Champion inconnu sort " + sortKey + " lancé " + manaUsed + " mana");
                         }
-
                     }
                     previousMana = currentMana;
                 } catch (NumberFormatException e) {
@@ -111,7 +124,13 @@ public class Main {
                 LOGGER.warning("Impossible de récupérer le mana.");
             }
 
-            Thread.sleep(10); // intervalle ajusté à 10 ms
+            try {
+                Thread.sleep(10); // intervalle ajusté à 10 ms
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt(); // Réinitialise le statut d'interruption
+                LOGGER.warning("Le thread a été interrompu pendant le sommeil.");
+                break; // Sort de la boucle si nécessaire
+            }
         }
     }
 }
