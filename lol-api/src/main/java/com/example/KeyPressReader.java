@@ -2,6 +2,9 @@ package com.example;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.BlockingQueue;
 
@@ -10,6 +13,7 @@ import java.util.concurrent.BlockingQueue;
  * et les place dans une BlockingQueue partagée.
  */
 public class KeyPressReader {
+    private ServerSocket server;
     private Socket socket;
     private BufferedReader reader;
     private final BlockingQueue<String> queue;
@@ -27,18 +31,22 @@ public class KeyPressReader {
     public void startListening() {
         try {
             // 1. Création du socket client sur localhost:4000
-            socket = new Socket("127.0.0.1", 4000);
-
+            server = new ServerSocket(4000); //"127.0.0.1", 4000);
+            
             // 2. On récupère le flux d'entrée pour lire les caractères envoyés
-            reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            socket = server.accept();
 
             // 3. Thread dédié pour ne pas bloquer le Main Thread
             new Thread(() -> {
                 String line;
                 try {
                     // 4. Lire en boucle chaque ligne (une touche) puis la stocker dans la queue
-                    while ((line = reader.readLine()) != null) {
-                        queue.offer(line);  // non bloquant, ajoute à la queue
+                    while(true){
+                        reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
+                        while ((line = reader.readLine()) != null) {
+                            System.out.println("LU "+line);
+                            queue.offer(line);  // non bloquant, ajoute à la queue
+                        }
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -55,6 +63,7 @@ public class KeyPressReader {
     public void stopListening() {
         try {
             if (socket != null) socket.close();
+            if (server != null) server.close();
         } catch (Exception e) {
             e.printStackTrace();
         }

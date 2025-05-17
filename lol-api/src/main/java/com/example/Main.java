@@ -14,9 +14,13 @@ public class Main {
     private static final Logger LOGGER = Logger.getLogger(Main.class.getName());
 
     public static void main(String[] args) {
+
+
         // Étape 1 : Configuration du système de logs
         configureLogging();
         LOGGER.info("Démarrage de l'application");
+
+
 
         // Étape 2 : Création du client HTTP pour interroger l'API LoL Live Client Data
         HttpClient client = HttpClientConfig.createHttpClient();
@@ -24,6 +28,8 @@ public class Main {
             LOGGER.severe("Erreur de création du HttpClient.");
             return;
         }
+
+
 
         // Étape 3 : Planification de la vérification de l'état du jeu toutes les 60 secondes
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
@@ -36,6 +42,9 @@ public class Main {
             }
         }, 0, 60, TimeUnit.SECONDS);
     }
+
+
+
 
     /**
      * Configuration du système de logs : console et fichier
@@ -58,12 +67,18 @@ public class Main {
         LOGGER.setLevel(Level.FINE);
     }
 
+
+
     /**
      * Logique principale exécutée pendant une partie active
      */
     private static void runGameLogic(HttpClient client) {
+
+
         // Étape 4 : Démarrage du serveur Python pour l'écoute des touches
         PythonServerManager.startPythonServerOnce();
+
+
 
         // Étape 5 : Récupération et journalisation du champion actif
         Optional<String> activeChamp = GetNameChampion.getChampionName(client);
@@ -71,6 +86,8 @@ public class Main {
             champ -> LOGGER.info("Champion actif détecté : " + champ),
             ()     -> LOGGER.warning("Impossible de détecter le champion actif")
         );
+
+
 
         // Étape 6 : Préparation de la file pour recevoir les touches via socket
         BlockingQueue<String> keyQueue = new LinkedBlockingQueue<>();
@@ -81,14 +98,20 @@ public class Main {
         List<TimedKey> allKeys = new ArrayList<>();
         int previousMana = -1;
 
+
+
+
         // Étape 7 : Boucle de détection continue (touches + mana)
         while (true) {
+
+
             // 7.1 : Lecture non bloquante d'une touche reçue
             String keyPressed = keyQueue.poll();
             if (keyPressed != null) {
                 LOGGER.finer("Touche reçue via socket : " + keyPressed);
                 allKeys.add(new TimedKey(keyPressed));
             }
+
 
             // 7.2 : Lecture du mana via l'API
             Optional<String> manaOpt = GetManaPlayer.getMana(client);
@@ -113,7 +136,7 @@ public class Main {
 
                         LOGGER.info("Sort détecté : key=" + sortKey + " manaUsed=" + manaUsed);
                         String champ = activeChamp.orElse("Inconnu");
-                        System.out.println(champ + " sort " + sortKey + " lancé " + manaUsed + " mana");
+                        System.out.println(champ + " sort " + keyPressed + " lancé " + manaUsed + " mana");
                     }
                     previousMana = currentMana;
                 } catch (NumberFormatException e) {
@@ -122,6 +145,8 @@ public class Main {
             } else {
                 LOGGER.warning("Impossible de récupérer le mana.");
             }
+
+
 
             // 7.3 : Pause courte pour limiter l'utilisation CPU
             try {
@@ -133,10 +158,14 @@ public class Main {
             }
         }
 
+
+
         // Étape 8 : Nettoyage à la sortie de boucle
         keyReader.stopListening();
         PythonServerManager.stopPythonServer();
     }
+
+    
 
     /**
      * Classe interne stockant une touche avec son timestamp
