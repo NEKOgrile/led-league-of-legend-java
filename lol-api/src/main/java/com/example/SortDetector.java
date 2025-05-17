@@ -9,12 +9,12 @@ public class SortDetector {
         int mana2;
 
         while (true) {
-            Optional<String> manaOpt = GetManaPlayer.getMana(client);
-            if (manaOpt.isPresent()) {
+            int manaOpt = GetManaPlayer.getMana(client);
+            if (manaOpt != -1) {
                 try {
-                    String manaStr = manaOpt.get().split("\\.")[0]; // Prend la partie entière
-                    mana2 = Integer.parseInt(manaStr);
-
+                    //String manaStr = manaOpt.get().split("\\.")[0]; // Prend la partie entière
+                    //mana2 = Integer.parseInt(manaStr);
+                    mana2 = manaOpt;
                     if (mana1 != -1 && mana2 < mana1) {
                         System.out.println("Un sort a probablement été utilisé ! Mana : " + mana2);
                     }

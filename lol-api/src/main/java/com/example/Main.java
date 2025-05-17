@@ -95,15 +95,17 @@ public class Main {
         LOGGER.fine("Démarrage du listener de touches (socket)");
         keyReader.startListening();
 
+
+
+        System.out.println("flag1");
+
+        
+
         List<TimedKey> allKeys = new ArrayList<>();
         int previousMana = -1;
 
-
-
-
         // Étape 7 : Boucle de détection continue (touches + mana)
         while (true) {
-
 
             // 7.1 : Lecture non bloquante d'une touche reçue
             String keyPressed = keyQueue.poll();
@@ -112,33 +114,33 @@ public class Main {
                 allKeys.add(new TimedKey(keyPressed));
             }
 
-
+            
             // 7.2 : Lecture du mana via l'API
-            Optional<String> manaOpt = GetManaPlayer.getMana(client);
-            if (manaOpt.isPresent()) {
+            Integer manaOpt = GetManaPlayer.getMana(client);
+            LOGGER.finest("Mana actuel : " + manaOpt);
+            System.out.println("Mana actuel : " + manaOpt);
+            if (manaOpt != -1) {
                 try {
-                    int currentMana = Integer.parseInt(manaOpt.get().split("\\.")[0]);
-                    LOGGER.finest("Mana actuel : " + currentMana);
 
-                    // Détection de la perte de mana -> sort lancé
-                    if (previousMana != -1 && currentMana < previousMana) {
-                        long now = System.currentTimeMillis();
-                        long deltaTime = 500;
-                        TimedKey matched = null;
-                        for (int i = allKeys.size() - 1; i >= 0; i--) {
-                            if (now - allKeys.get(i).timestamp <= deltaTime) {
-                                matched = allKeys.get(i);
-                                break;
-                            }
-                        }
-                        String sortKey = matched != null ? matched.key.toUpperCase() : "?";
-                        int manaUsed = previousMana - currentMana;
-
-                        LOGGER.info("Sort détecté : key=" + sortKey + " manaUsed=" + manaUsed);
-                        String champ = activeChamp.orElse("Inconnu");
-                        System.out.println(champ + " sort " + keyPressed + " lancé " + manaUsed + " mana");
-                    }
-                    previousMana = currentMana;
+                    //// Détection de la perte de mana -> sort lancé
+                    //if (previousMana != -1 && currentMana < previousMana) {
+                    //    long now = System.currentTimeMillis();
+                    //    long deltaTime = 500;
+                    //    TimedKey matched = null;
+                    //    for (int i = allKeys.size() - 1; i >= 0; i--) {
+                    //        if (now - allKeys.get(i).timestamp <= deltaTime) {
+                    //            matched = allKeys.get(i);
+                    //            break;
+                    //        }
+                    //    }
+                    //    String sortKey = matched != null ? matched.key.toUpperCase() : "?";
+                    //    int manaUsed = previousMana - currentMana;
+//
+                    //    LOGGER.info("Sort détecté : key=" + sortKey + " manaUsed=" + manaUsed);
+                    //    String champ = activeChamp.orElse("Inconnu");
+                    //    System.out.println(champ + " sort " + keyPressed + " lancé " + manaUsed + " mana");
+                    //}
+                    previousMana = manaOpt;
                 } catch (NumberFormatException e) {
                     LOGGER.log(Level.WARNING, "Erreur parsing mana", e);
                 }
