@@ -5,3 +5,4 @@ Ignorer le fichier de logs de touches appuyées
 key_pressed.txt
 /*.log
 /*.lck
+/*.txt

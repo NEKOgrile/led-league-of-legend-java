@@ -1,77 +1,62 @@
 package com.example;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.Socket;
+import java.util.concurrent.BlockingQueue;
 
+/**
+ * Client TCP qui lit les touches envoyées par le serveur Python
+ * et les place dans une BlockingQueue partagée.
+ */
 public class KeyPressReader {
+    private Socket socket;
+    private BufferedReader reader;
+    private final BlockingQueue<String> queue;
 
-    private Process pythonProcess;
-    private final File workingDir;
-    private final File scriptPath;
-    private final File keyFile;
-
-    public KeyPressReader() {
-        workingDir = new File("lol-api/src");
-        scriptPath = new File(workingDir, "key_listener.py");
-        keyFile = new File(workingDir, "key_pressed.txt");
+    /**
+     * @param queue File thread-safe pour stocker les touches reçues.
+     */
+    public KeyPressReader(BlockingQueue<String> queue) {
+        this.queue = queue;  // on conserve la référence à la queue partagée
     }
 
+    /**
+     * Démarre la connexion au serveur Python et lance un thread de lecture.
+     */
     public void startListening() {
         try {
-            if (!scriptPath.exists()) {
-                System.err.println("Script Python introuvable à : " + scriptPath.getAbsolutePath());
-                return;
-            }
+            // 1. Création du socket client sur localhost:4000
+            socket = new Socket("127.0.0.1", 4000);
 
-            ProcessBuilder processBuilder = new ProcessBuilder("python", scriptPath.getAbsolutePath());
-            processBuilder.directory(workingDir);
-            processBuilder.redirectErrorStream(true);
-            pythonProcess = processBuilder.start();
+            // 2. On récupère le flux d'entrée pour lire les caractères envoyés
+            reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-            // Log Python output
+            // 3. Thread dédié pour ne pas bloquer le Main Thread
             new Thread(() -> {
-                try (BufferedReader reader = new BufferedReader(
-                        new InputStreamReader(pythonProcess.getInputStream()))) {
-                    String line;
+                String line;
+                try {
+                    // 4. Lire en boucle chaque ligne (une touche) puis la stocker dans la queue
                     while ((line = reader.readLine()) != null) {
-                        System.out.println("[Python] " + line);
+                        queue.offer(line);  // non bloquant, ajoute à la queue
                     }
-                } catch (IOException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }).start();
-
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public String getLastKeyPressed() {
-        if (keyFile.exists() && keyFile.length() > 0) {
-            try {
-                BufferedReader reader = new BufferedReader(new FileReader(keyFile));
-                String key = reader.readLine();
-                reader.close();
-
-                // ❌ NE SUPPRIME PLUS ICI
-                return key;
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        return null;
-    }
-
-    public void clearKeyFile() {
-        try {
-            new PrintWriter(keyFile).close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
+    /**
+     * Ferme proprement le socket et le reader.
+     */
     public void stopListening() {
-        if (pythonProcess != null) {
-            pythonProcess.destroy();
+        try {
+            if (socket != null) socket.close();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }
