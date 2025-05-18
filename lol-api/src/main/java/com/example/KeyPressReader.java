@@ -2,8 +2,6 @@ package com.example;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.BlockingQueue;
@@ -44,7 +42,6 @@ public class KeyPressReader {
                     while(true){
                         reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
                         while ((line = reader.readLine()) != null) {
-                            System.out.println("LU "+line);
                             queue.offer(line);  // non bloquant, ajoute à la queue
                         }
                     }

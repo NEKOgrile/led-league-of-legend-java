@@ -8,19 +8,15 @@ import java.io.IOException;
 import java.util.List;
 import java.util.ArrayList;
 
-
 public class Main {
 
     private static final Logger LOGGER = Logger.getLogger(Main.class.getName());
 
     public static void main(String[] args) {
 
-
         // Étape 1 : Configuration du système de logs
         configureLogging();
         LOGGER.info("Démarrage de l'application");
-
-
 
         // Étape 2 : Création du client HTTP pour interroger l'API LoL Live Client Data
         HttpClient client = HttpClientConfig.createHttpClient();
@@ -29,9 +25,8 @@ public class Main {
             return;
         }
 
-
-
-        // Étape 3 : Planification de la vérification de l'état du jeu toutes les 60 secondes
+        // Étape 3 : Planification de la vérification de l'état du jeu toutes les 60
+        // secondes
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
         scheduler.scheduleAtFixedRate(() -> {
             if (GameStatusChecker.isGameRunning(client)) {
@@ -42,9 +37,6 @@ public class Main {
             }
         }, 0, 60, TimeUnit.SECONDS);
     }
-
-
-
 
     /**
      * Configuration du système de logs : console et fichier
@@ -67,39 +59,25 @@ public class Main {
         LOGGER.setLevel(Level.FINE);
     }
 
-
-
     /**
      * Logique principale exécutée pendant une partie active
      */
     private static void runGameLogic(HttpClient client) {
 
-
         // Étape 4 : Démarrage du serveur Python pour l'écoute des touches
         PythonServerManager.startPythonServerOnce();
-
-
 
         // Étape 5 : Récupération et journalisation du champion actif
         Optional<String> activeChamp = GetNameChampion.getChampionName(client);
         activeChamp.ifPresentOrElse(
-            champ -> LOGGER.info("Champion actif détecté : " + champ),
-            ()     -> LOGGER.warning("Impossible de détecter le champion actif")
-        );
-
-
+                champ -> LOGGER.info("Champion actif détecté : " + champ),
+                () -> LOGGER.warning("Impossible de détecter le champion actif"));
 
         // Étape 6 : Préparation de la file pour recevoir les touches via socket
         BlockingQueue<String> keyQueue = new LinkedBlockingQueue<>();
         KeyPressReader keyReader = new KeyPressReader(keyQueue);
         LOGGER.fine("Démarrage du listener de touches (socket)");
         keyReader.startListening();
-
-
-
-        System.out.println("flag1");
-
-        
 
         List<TimedKey> allKeys = new ArrayList<>();
         int previousMana = -1;
@@ -110,45 +88,34 @@ public class Main {
             // 7.1 : Lecture non bloquante d'une touche reçue
             String keyPressed = keyQueue.poll();
             if (keyPressed != null) {
-                LOGGER.finer("Touche reçue via socket : " + keyPressed);
+                // LOGGER.finer("Touche reçue via socket : " + keyPressed);
                 allKeys.add(new TimedKey(keyPressed));
-            }
+                // System.out.println(keyPressed);
 
-            
-            // 7.2 : Lecture du mana via l'API
-            Integer manaOpt = GetManaPlayer.getMana(client);
-            LOGGER.finest("Mana actuel : " + manaOpt);
-            System.out.println("Mana actuel : " + manaOpt);
-            if (manaOpt != -1) {
+                //// 7.2 : Lecture du mana via l'API
+                 Integer currentMana = GetManaPlayer.getMana(client);
+                // LOGGER.info("Mana actuel : " + manaOpt);
+                //System.out.println("Mana actuel : " + currentMana);
+                if (currentMana != -1) {
+
                 try {
 
-                    //// Détection de la perte de mana -> sort lancé
-                    //if (previousMana != -1 && currentMana < previousMana) {
-                    //    long now = System.currentTimeMillis();
-                    //    long deltaTime = 500;
-                    //    TimedKey matched = null;
-                    //    for (int i = allKeys.size() - 1; i >= 0; i--) {
-                    //        if (now - allKeys.get(i).timestamp <= deltaTime) {
-                    //            matched = allKeys.get(i);
-                    //            break;
-                    //        }
-                    //    }
-                    //    String sortKey = matched != null ? matched.key.toUpperCase() : "?";
-                    //    int manaUsed = previousMana - currentMana;
-//
-                    //    LOGGER.info("Sort détecté : key=" + sortKey + " manaUsed=" + manaUsed);
-                    //    String champ = activeChamp.orElse("Inconnu");
-                    //    System.out.println(champ + " sort " + keyPressed + " lancé " + manaUsed + " mana");
-                    //}
-                    previousMana = manaOpt;
+                    // Détection de la perte de mana -> sort lancé
+                    if (previousMana != -1 && currentMana < previousMana) {
+
+                        System.out.println("le sort " + keyPressed + " à etais lancer et j ai "+ currentMana + "de mana");
+                    
+                     }
+
+                previousMana = currentMana;
                 } catch (NumberFormatException e) {
                     LOGGER.log(Level.WARNING, "Erreur parsing mana", e);
                 }
-            } else {
-                LOGGER.warning("Impossible de récupérer le mana.");
+                 } else {
+                 LOGGER.warning("Impossible de récupérer le mana.");
+                 }
+
             }
-
-
 
             // 7.3 : Pause courte pour limiter l'utilisation CPU
             try {
@@ -160,14 +127,10 @@ public class Main {
             }
         }
 
-
-
         // Étape 8 : Nettoyage à la sortie de boucle
         keyReader.stopListening();
         PythonServerManager.stopPythonServer();
     }
-
-    
 
     /**
      * Classe interne stockant une touche avec son timestamp
@@ -175,6 +138,7 @@ public class Main {
     static class TimedKey {
         String key;
         long timestamp;
+
         TimedKey(String key) {
             this.key = key;
             this.timestamp = System.currentTimeMillis();
