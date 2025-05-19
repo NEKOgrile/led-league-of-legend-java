@@ -5,6 +5,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 import java.io.StringReader;
 
 import javax.json.Json;
@@ -21,6 +22,7 @@ public class GetManaPlayer {
                     .timeout(Duration.ofSeconds(1))
                     .header("Accept", "application/json")
                     .build();
+
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             String json = response.body();
