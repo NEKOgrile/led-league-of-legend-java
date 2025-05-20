@@ -1,4 +1,4 @@
-package com.example;
+package com.Game;
 
 import javax.net.ssl.*;
 import java.security.NoSuchAlgorithmException;

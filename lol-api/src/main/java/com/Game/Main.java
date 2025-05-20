@@ -1,4 +1,4 @@
-package com.example;
+package com.Game;
 
 import java.net.http.HttpClient;
 import java.util.Optional;
