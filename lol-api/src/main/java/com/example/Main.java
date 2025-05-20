@@ -24,28 +24,29 @@ public class Main {
             LOGGER.severe("Erreur de création du HttpClient.");
             return;
         }
-        testingGame(client);
-
-
-
-
-        
+        testingGame(client);  
     }
 
-    
-    private static void testingGame(HttpClient client) {
-        // Étape 3 : Planification de la vérification de l'état du jeu toutes les 60
-        // secondes
-        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-        scheduler.scheduleAtFixedRate(() -> {
-            if (GameStatusChecker.isGameRunning(client)) {
-                LOGGER.info("Une partie est en cours !");
-                runGameLogic(client);
-            } else {
-                LOGGER.info("Aucune partie en cours.");
+private static void testingGame(HttpClient client) {
+    ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    scheduler.scheduleAtFixedRate(() -> {
+        if (GameStatusChecker.isGameRunning(client)) {
+            LOGGER.info("Une partie est en cours !");
+            runGameLogic(client , true);
+        } else {
+            LOGGER.info("Aucune partie en cours.");
+            try {
+                // Attendre 60 secondes si aucune partie n'est en cours
+                Thread.sleep(60_000);
+                runGameLogic(client , false);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                LOGGER.warning("Le thread a été interrompu pendant l'attente.");
             }
-        }, 0, 60, TimeUnit.SECONDS);
-    }
+        }
+    }, 0, 60, TimeUnit.SECONDS);
+}
+
 
     /**
      * Configuration du système de logs : console et fichier
@@ -71,7 +72,7 @@ public class Main {
     /**
      * Logique principale exécutée pendant une partie active
      */
-    private static void runGameLogic(HttpClient client) {
+    private static void runGameLogic(HttpClient client , boolean partie) {
 
         // Étape 4 : Démarrage du serveur Python pour l'écoute des touches
         PythonServerManager.startPythonServerOnce();
@@ -90,9 +91,8 @@ public class Main {
 
         List<TimedKey> allKeys = new ArrayList<>();
         int previousMana = -1;
-
         // Étape 7 : Boucle de détection continue (touches + mana)
-        while (true) {
+        while (partie == true) {
             // 7.1 : Lecture non bloquante d'une touche reçue
             String keyPressed = keyQueue.poll();
             if (keyPressed != null) {
@@ -129,9 +129,6 @@ public class Main {
                         String champ = activeChamp.orElse("Inconnu");
                         System.out.println(champ + " sort " + sortKey + " lancé " + manaUsed + " mana");
 
-
-
-
                     }
                     previousMana = currentMana;
                 } catch (NumberFormatException e) {
@@ -139,6 +136,8 @@ public class Main {
                 }
             } else {
                 LOGGER.warning("Impossible de récupérer le mana.");
+                partie = false;
+                
             }
 
             // 7.3 : Pause courte pour limiter l'utilisation CPU
@@ -153,6 +152,10 @@ public class Main {
         // Étape 8 : Nettoyage à la sortie de boucle
         keyReader.stopListening();
         PythonServerManager.stopPythonServer();
+
+
+        //teste de l etat de la game : 
+        testingGame(client);
     }
 
     /**
